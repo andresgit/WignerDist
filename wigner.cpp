@@ -2,17 +2,12 @@
 
 
 Wigner::Wigner(const std::function<std::complex<double>(double)>& Psi, int N) : basis(N,0,1), _Psi(Psi), _N(N), wav(&basis){
-
-    values = wav.on_grid(0,1,1.0/_N);
+    wav.set(_Psi);
+    values = wav.on_grid(0,1,_N);
 
     in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N);
     out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N);
     p = fftw_plan_dft_1d(N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
-
-    std::complex<double> mycomplex(1,2);
-    fftw_complex c = {1,2};
-
-    fftw_execute(p); /* repeat as needed */
 }
 
 Wigner::~Wigner(){
@@ -34,4 +29,20 @@ std::vector<std::complex<double>> Wigner::val(int n){
         result[i] = std::complex<double>(out[i][0], out[i][1]);
     }
     return result;
+}
+
+void Wigner::writeFile(std::string filename){
+    std::ofstream file;
+    file.open(filename);
+
+    for(int i = 0; i < _N; ++i){
+        std::vector<std::complex<double>> vals = val(i);
+        for(int j = 0; j < _N; ++j){
+            file << vals[j] << " ";
+            std::cout << vals[j] << " ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout<< std::endl;
+    file.close();
 }

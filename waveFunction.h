@@ -18,7 +18,7 @@ public:
     WaveFunction(const BasisSet* Basis, const Eigen::VectorXcd& Vector);
 
     void set(const std::function<std::complex<double>(double)>& Psi);
-    std::vector<std::complex<double>> on_grid(double left, double right, double spacing);
+    std::vector<std::complex<double>> on_grid(double left, double right, int N);
 
     double norm() const;
 

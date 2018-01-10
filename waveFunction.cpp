@@ -24,12 +24,15 @@ void WaveFunction::set(const std::function<std::complex<double>(double)>& Psi){
     vector = basis->overlap().inverse()*F*psi;
 }
 
-std::vector<std::complex<double>> WaveFunction::on_grid(double left, double right, double spacing){
+std::vector<std::complex<double>> WaveFunction::on_grid(double left, double right, int N){
     std::vector<std::complex<double>> res;
-    for(double x=left; x<=right; x+=spacing){
+    double x = left;
+    for(int i=0; i < N; i++){
+//        std::cout << x << std::endl;
         std::vector<double> val = basis->val(x);
         res.push_back(0);
         for(int i=0; i<val.size(); i++) res.back()+=val[i]*vector(i);
+        x += (right-left)/(N-1);
     }
     return res;
 }
