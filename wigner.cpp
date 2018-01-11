@@ -19,9 +19,9 @@ std::vector<std::complex<double>> Wigner::val(int n){
     for(int i = 0; i < _N; i++){
         std::complex<double> val1 = n+i < _N ? values[n+i] : 0;
         std::complex<double> val2 = n-i > 0 ? values[n-i] : 0;
-        std::complex<double> val = std::conj(val1)*val2;
-        in[i][0] = val.real();
-        in[i][0] = val.imag();
+        std::complex<double> value = std::conj(val1)*val2;
+        in[i][0] = value.real();
+        in[i][0] = value.imag();
     }
     fftw_execute(p);
     std::vector<std::complex<double>> result(_N);
