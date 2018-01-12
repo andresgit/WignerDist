@@ -13,12 +13,13 @@ class WaveFunction{
 
 public:
     Eigen::VectorXcd vector;
+    double interval;
 
     WaveFunction(const BasisSet* Basis);
     WaveFunction(const BasisSet* Basis, const Eigen::VectorXcd& Vector);
 
     void set(const std::function<std::complex<double>(double)>& Psi);
-    std::vector<std::complex<double>> on_grid(double left, double right, int N);
+    std::vector<std::complex<double>> on_grid(int N, double left=0, double right=0);
 
     double norm() const;
 
