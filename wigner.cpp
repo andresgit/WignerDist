@@ -1,7 +1,7 @@
 #include "wigner.h"
 
 
-Wigner::Wigner(WaveFunction *wav, int _N): N(_N){
+Wigner::Wigner(WaveFunction *wav, int _N): N(_N), imagMax(0){
     values = wav->on_grid(N);
     interval = wav->interval;
 
@@ -16,53 +16,36 @@ Wigner::~Wigner(){
     fftw_free(out);
 }
 
-std::vector<std::complex<double>> Wigner::val(int n){
+std::vector<double> Wigner::val(int n){
     int toEdge = std::min(n, N-n-1);
     for(int i = -N; i < N; i++){
         if(i < -toEdge || i > toEdge){
             in[N+i][0] = 0;
             in[N+i][1] = 0;
-//            std::cout << std::complex<double>(0,0);
         }
         else{
             std::complex<double> value = std::conj(values[n-i])*values[n+i];
             in[N+i][0] = value.real();
             in[N+i][1] = value.imag();
-//            std::cout << value;
         }
     }
-    std::cout << std::endl;
 
-    for(int i = 0; i < 2*N; i++){
-        std::cout << "(" << in[i][0] << "," << in[i][1] << ")";
-    }
-
-//    std::cout << std::endl;
     fftw_execute(p);
-    std::vector<std::complex<double>> result(N);
-//    std::cout << "Full DFT:" << std::endl;
-//    for(int i = 0; i < 2*N; i++){
-//        std::cout << std::complex<double>(out[i][0], out[i][1]);
-//    }
-//    std::cout << std::endl;
+    std::vector<double> result(N);
 
-    std::cout << "F:" << std::endl;
     for(int i = 0; i < (N+1)/2; i++){
-        result[i+N/2] = interval/N/M_PI*std::complex<double>(out[2*i][0], out[2*i][1]);
-//        std::cout << std::complex<double>(out[2*i][0], out[2*i][1]);
+        result[i+N/2] = interval/N/M_PI*out[2*i][0];
+        if(fabs(out[2*i][1]) > imagMax) imagMax = fabs(out[2*i][1]);
     }
     for(int i = (N+1)/2; i < N; i++){
-        result[i-(N+1)/2] = interval/N/M_PI*std::complex<double>(out[2*i][0], out[2*i][1]);
-//        std::cout << std::complex<double>(out[2*i][0], out[2*i][1]);
-    }
-    std::cout << std::endl;
-
-    std::cout << "Result for p:" << std::endl;
-    for(int i = 0; i < N; i++){
-        std::cout << result[i];
+        result[i-(N+1)/2] = interval/N/M_PI*out[2*i][0];
+        if(fabs(out[2*i][1]) > imagMax) imagMax = fabs(out[2*i][1]);
     }
 
-    std::cout << std::endl;
+    if(imagMax > 1e-10){
+        ABORT("GETTING IMAGINARY VALUES FOR THE WIGNER DISTRIBUTION");
+    }
+
     return result;
 }
 
@@ -73,13 +56,11 @@ void Wigner::writeFile(std::string filename){
     file << interval << std::endl;
 
     for(int i = 0; i < N; ++i){
-        std::vector<std::complex<double>> vals = val(i);
+        std::vector<double> vals = val(i);
         for(int j = 0; j < N; ++j){
             file << vals[j] << " ";
-            std::cout << vals[j] << " ";
         }
-        std::cout << std::endl;
     }
-    std::cout<< std::endl;
     file.close();
+
 }

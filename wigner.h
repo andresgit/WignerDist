@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iostream>
 #include <math.h>
+#include <abort.h>
 
 class Wigner{
 public:
@@ -15,12 +16,13 @@ public:
     int N;
     std::vector<std::complex<double>> values;
     double interval;
+    double imagMax;
 
 
     Wigner(WaveFunction *wav, int N = 100);
     ~Wigner();
 
-    std::vector<std::complex<double>> val(int n);
+    std::vector<double> val(int n);
 
     void writeFile(std::string filename);
 
