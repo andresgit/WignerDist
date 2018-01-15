@@ -7,6 +7,7 @@
 
 #include <Eigen/Dense>
 #include "basisSet.h"
+#include <fftw3.h>
 
 class WaveFunction{
     const BasisSet* basis;
@@ -20,6 +21,7 @@ public:
 
     void set(const std::function<std::complex<double>(double)>& Psi);
     std::vector<std::complex<double>> on_grid(int N, double left=0, double right=0);
+    std::vector<std::complex<double>> p_on_grid(int N);
 
     double norm() const;
 

@@ -42,6 +42,25 @@ std::vector<std::complex<double>> WaveFunction::on_grid(int N, double left, doub
     return res;
 }
 
+std::vector<std::complex<double>> WaveFunction::p_on_grid(int N){
+    std::vector<std::complex<double>> values = on_grid(N);
+    fftw_complex *in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) *N);
+    fftw_complex *out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) *N);
+    fftw_plan p = fftw_plan_dft_1d(N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+    for(int i = 0; i < N; ++i){
+        in[i][0] = values[i].real();
+        in[i][1] = values[i].imag();
+    }
+    fftw_execute(p);
+    for(int i = 0; i < (N+1)/2; i++){
+        values[i+N/2] = interval/N/sqrt(2*M_PI)*std::complex<double>(out[i][0], out[i][1]);
+    }
+    for(int i = (N+1)/2; i < N; i++){
+        values[i-(N+1)/2] = interval/N/sqrt(2*M_PI)*std::complex<double>(out[i][0], out[i][1]);
+    }
+    return values;
+}
+
 
 //gives the integral of the wavefunction squared
 double WaveFunction::norm() const{

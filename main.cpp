@@ -11,13 +11,10 @@ std::complex<double> f1(double x){
 
 int main()
 {
-    double L = 5;
-    LegendreScaled basis(20,-L,L);
-    WaveFunction wav(&basis);
-    wav.set(f1);
-    Wigner wig(&wav, int(50));
-
-    wig.writeFile("test1.txt");
+//    Wigner::test();
+//    Wigner::oscEigenStates();
+//    Wigner::oscCoherent();
+    Wigner::checkProb();
 
     return 0;
 }

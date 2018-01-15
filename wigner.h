@@ -8,11 +8,13 @@
 #include <iostream>
 #include <math.h>
 #include <abort.h>
+#include <iomanip>
 
 class Wigner{
 public:
     fftw_complex *in, *out;
     fftw_plan p;
+    WaveFunction *wav;
     int N;
     std::vector<std::complex<double>> values;
     double interval;
@@ -23,8 +25,19 @@ public:
     ~Wigner();
 
     std::vector<double> val(int n);
+    void updateGrid();
 
     void writeFile(std::string filename);
+
+    static void checkProb();
+
+    static void writeFileSum(std::string filename, std::vector<Wigner*> wigs);
+
+    static void test();
+
+    static void oscEigenStates();
+
+    static void oscCoherent();
 
 };
 

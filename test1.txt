@@ -1,1 +1,0 @@
-/home/andres/Documents/LMU/CompPhys/build-CompPhys-Poldaru-Desktop-Debug/test1.txt
