@@ -29,6 +29,9 @@ public:
 
     void writeFile(std::string filename);
 
+    template<typename T>
+    void writeFileVector(std::string filename, std::vector<T> vector);
+
     static void checkProb();
 
     static void writeFileSum(std::string filename, std::vector<Wigner*> wigs);

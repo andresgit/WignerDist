@@ -68,6 +68,20 @@ void Wigner::writeFile(std::string filename){
     file.close();
 }
 
+template<typename T>
+void Wigner::writeFileVector(std::string filename, std::vector<T> vector){
+    std::ofstream file;
+    file.open(filename);
+
+    file << interval << std::endl;
+
+    for(int j = 0; j < vector.size(); ++j){
+        file << vector[j] << " ";
+    }
+
+    file.close();
+}
+
 void Wigner::writeFileSum(std::string filename, std::vector<Wigner*> wigs){
     Wigner* wig0 = wigs[0];
     std::ofstream file;
@@ -174,11 +188,11 @@ void Wigner::oscCoherent(){
 
 //calculate that the integral of W over x or p gives the probabilities for p and x respectively
 void Wigner::checkProb(){
-    double L = 14;
+    double L = 10;
     LegendreScaled basis(50,-L,L);
     WaveFunction wav(&basis);
     wav.set([](double x){ return std::complex<double>(exp(-x*x/2)/pow(M_PI,1.0/4), 0);});
-    Wigner wig(&wav, 250);
+    Wigner wig(&wav, 201);
 
     int N = wig.N;
 
@@ -196,20 +210,25 @@ void Wigner::checkProb(){
         for(int j = 0; j < N; j++){
             prob += M_PI/wig.interval*grid(i,j);
         }
-        std::cout << std::setprecision(20) << "Ratio: " <<  prob/pow(fabs(wig.values[i]),2) << std::endl;
+        std::cout << i << " Wigner: " << prob << ", Wavefunc: " << pow(fabs(wig.values[i]),2) << ", theor:" << exp(-pow(wig.interval/(N-1)*(i-N/2),2))/sqrt(M_PI) <<std::endl;
+        std::cout << i << std::setprecision(20) << " Ratio: " <<  prob/pow(fabs(wig.values[i]),2) << std::endl;
     }
     std::cout << std::endl;
 
     std::cout << "Ratio of p probabilities from Wigner divided by the wavefunction amplitude squared:" << std::endl;
     for(int i = 0; i < N; i++){
         double prob = 0;
+        if(2*i-N/2 >= 0 && 2*i-N/2 < N){
         for(int j = 0; j < N; j++){
-            prob += wig.interval/wig.N*grid(j,i);
+            prob += wig.interval/wig.N*grid(j,2*i-N/2);
         }
-        std::cout << i << " Wigner: " << prob << ", DFT: " << pow(fabs(wig.wav->p_on_grid(N)[i]),2) << ", theor:" << exp(-pow(2*M_PI*(i-(N+1)/2)/wig.interval,2))/sqrt(M_PI) <<std::endl;
-        std::cout << i << std::setprecision(20) << " Ratio: " <<  prob/pow(fabs(wig.wav->p_on_grid(N)[i]),2) << std::endl;
+        }
+        std::cout << i << " Wigner: " << prob << ", DFT: " << pow(fabs(wig.wav->p_on_grid(N)[i]),2) << ", theor:" << exp(-pow(M_PI*N*(2.0*i/(N-1)-1)/(wig.interval),2))/sqrt(M_PI) <<std::endl;
+        std::cout << i << std::setprecision(20) << " p:" << M_PI*N*(2.0*i/(N-1)-1)/(wig.interval) << " Ratio: " <<  prob/pow(fabs(wig.wav->p_on_grid(N)[i]),2) << std::endl;
     }
-    std::cout << std::endl;
+    std::cout << wig.interval << std::endl;
+
+    wig.writeFileVector<std::complex<double>>("pongrid.txt", wig.wav->p_on_grid(N));
 
     double prob = 0;
     for(int i = 0; i < N; i++){
