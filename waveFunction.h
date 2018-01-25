@@ -10,9 +10,9 @@
 #include <fftw3.h>
 
 class WaveFunction{
-    const BasisSet* basis;
 
 public:
+    const BasisSet* basis;
     Eigen::VectorXcd vector;
     double interval;
 

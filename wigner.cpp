@@ -1,5 +1,6 @@
 #include "wigner.h"
 
+using namespace std;
 
 Wigner::Wigner(WaveFunction *_wav, int _N): wav(_wav), N(_N), imagMax(0){
     values = wav->on_grid(N);
@@ -12,6 +13,11 @@ Wigner::Wigner(WaveFunction *_wav, int _N): wav(_wav), N(_N), imagMax(0){
 
 void Wigner::updateGrid(){
     values = wav->on_grid(N);
+}
+
+void Wigner::newWaveFunc(WaveFunction *_wav){
+    wav = _wav;
+    updateGrid();
 }
 
 Wigner::~Wigner(){
@@ -116,10 +122,10 @@ void Wigner::test(){
     wig.writeFile("test1.txt");
 }
 
-// the Hamiltonian is x^2/2+p^2/2 = a^{+}a + 1/2
+// the Hamiltonian is x^2/2+p^2/2 = a^{+}a + 1/2, write data for the first three eigenstates
 void Wigner::oscEigenStates(){
     double L = 5;
-    LegendreScaled basis(20,-L,L);
+    BasisBoundary basis(20,-L,L);
     WaveFunction wav(&basis);
     Wigner wig(&wav, 50);
 
@@ -140,8 +146,8 @@ void Wigner::oscEigenStates(){
 // or by changing global phase can also be written as 1/pow(M_PI,0.25)*exp[-(x-\sqrt{2}Re(\alpha))^2/2+i\sqrt{2}Im(\alpha)x]
 // then <psi|x|psi>=\sqrt{2}Re(\alpha) and <psi|p|psi>=\sqrt{2}Im(\alpha) and time evolution just rotates \alpha->exp(i\phi)\alpha
 void Wigner::oscCoherent(){
-    double L = 7;
-    LegendreScaled basis(50,-L,L);
+    double L = 10;
+    LegendreScaled basis(100,-L,L);
     WaveFunction wav(&basis);
     Wigner wig(&wav, 80);
     std::complex<double> alpha;
@@ -168,8 +174,8 @@ void Wigner::oscCoherent(){
     }
 
     //plot the pure state (|a1> + |a2>)/sqrt(2)
-    std::complex<double> alpha1 = std::complex<double>(-1.5,0);
-    std::complex<double> alpha2 = std::complex<double>(1.5,0);
+    std::complex<double> alpha1 = std::complex<double>(-2,0);
+    std::complex<double> alpha2 = std::complex<double>(2,0);
     wav.set([&](double x){ return 1/sqrt(2)*(exp(-pow(x-sqrt(2)*alpha1,2)/2.0-pow(alpha1.imag(),2))/pow(M_PI,1.0/4) +
                                                  exp(-pow(x-sqrt(2)*alpha2,2)/2.0-pow(alpha2.imag(),2))/pow(M_PI,1.0/4));});
     wig.updateGrid();
@@ -237,4 +243,96 @@ void Wigner::checkProb(){
     std::cout << "Wavefunction sum: " << prob << std::endl;
 
     wig.writeFile("checkProb.txt");
+}
+
+//calculate the time evolution of the wave function wavFunc and plot the Wigner distributions along the way, eps is the x^4 coefficient, T is the final time, N is number of plots
+//for the time evolution we find the eigenvectors and eigenvalues of the Hamiltonian operator on the given basis set and then just exponentiate them as usual v(t)=exp(
+void Wigner::timeEvo(std::complex<double> (*wavFunc)(double), double perturb, string fileNameStart, double T, int N){
+    double L = 7;
+    BasisBoundary basis(70,-L,L);
+    WaveFunction wav(&basis);
+    std::complex<double> alpha(1,1);
+    wav.set(wavFunc);
+    Wigner wig(&wav, 80);
+    wig.writeFile(fileNameStart+".txt");
+
+    //the Hamiltonian matrix in the current basis, we get it from the basis class
+    Eigen::MatrixXd ham = basis.matrix("-(d/dx)^2", basis, basis)/2 + basis.matrix("x^2", basis, basis)/2 + perturb*basis.matrix("x^4", basis, basis);
+
+    //find eigenvectors and eigenvalues
+    Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> solv(ham, basis.overlap());
+//    cout << "Eigenvalues:" << endl;
+//    cout << solv.eigenvalues() << endl << endl;
+
+//    cout << "Ham:" << endl;
+//    cout << ham << endl << endl;
+
+//    cout << "Overlap matrix: " << endl;
+//    cout << basis.overlap() << endl << endl;
+
+//    cout << "Eigenvectors: " << endl;
+//    cout << solv.eigenvectors() << endl << endl;
+
+//    cout << "Eigenvector products: " << endl;
+//    cout << solv.eigenvectors().adjoint()*solv.eigenvectors() << endl << endl;
+
+    //advance the wavefunction to time t in n steps
+//    double T = M_PI/0.5;
+//    int N = 20;
+    //store the original state, we will just be exponentiating the eigenvector components to find the state at time t
+    Eigen::VectorXcd vec = wav.vector;
+    //find what combination of eigenstates was the original state
+    Eigen::VectorXcd eigVComponents = solv.eigenvectors().fullPivLu().solve(vec);
+    for(int n = 0; n < N; n++){
+        double t = N > 1 ? T*n/(N) : 0;
+        wav.vector = Eigen::VectorXcd::Zero(vec.size());
+        for(int i = 0; i < wav.vector.size(); i++){
+            //each eigenvector v_n gets just an exponential factor depending on the energy: v_n -> exp(-iE_n t)*v_n
+            wav.vector += exp(-std::complex<double>(0,1)*t*solv.eigenvalues()(i)) * eigVComponents(i)*solv.eigenvectors().col(i);
+        }
+        //calculate the Wigner distribution based on the new basis components calculated above and write the data to a file
+        wig.updateGrid();
+        wig.writeFile(fileNameStart + to_string(n) + ".txt");
+    }
+}
+
+
+//double x1, sig1;
+void Wigner::timeEvoTest(double x0, double sig){
+    double T = M_PI/0.5;
+    double perturb;
+    int N = 20;
+    complex<double> (*wavFunc)(double) = [](double x) -> complex<double> { complex<double> alpha = complex<double>(1,1); return exp(-pow(x-sqrt(2)*alpha,2)/2.0-pow(alpha.imag(),2))/pow(M_PI,1.0/4);};
+    ostringstream out;
+
+    goto next;
+    //data with various x^4 perturbation coefficients
+    perturb = 0.;
+    out.str(string()); out << "timeEvo_eps_" << perturb << "_";
+    timeEvo(wavFunc, perturb, out.str(), T, N);
+
+    perturb = 0.01;
+    out.str(string()); out << "timeEvo_eps_" << perturb << "_";
+    timeEvo(wavFunc, perturb, out.str(), T, N);
+
+    perturb = 0.1;
+    out.str(string()); out << "timeEvo_eps_" << perturb << "_";
+    timeEvo(wavFunc, perturb, out.str(), T, N);
+
+    perturb = 1.;
+    out.str(string()); out << "timeEvo_eps_" << perturb << "_";
+    timeEvo(wavFunc, perturb, out.str(), T, N);
+next:
+    //data for gaussian initial state to observe squeezing
+//    x1 = x0;
+//    sig1 = sig;
+    wavFunc = [](double x) -> complex<double> { double x0 = 1; double sig = 1; return exp(-pow((x-x0)/(sig*sig),2))/pow(M_PI,1.0/4);};
+    timeEvo(wavFunc, 0, "timeEvo_x0_1_sig_1_", T, N);
+
+    wavFunc = [](double x) -> complex<double> { double x0 = 1.5; double sig = 1.5; return exp(-pow((x-x0)/(sig*sig),2))/pow(M_PI,1.0/4);};
+    timeEvo(wavFunc, 0, "timeEvo_x0_1.5_sig_1.5_", T, N);
+
+    wavFunc = [](double x) -> complex<double> { double x0 = 1.5; double sig = 1.8; return exp(-pow((x-x0)/(sig*sig),2))/pow(M_PI,1.0/4);};
+    timeEvo(wavFunc, 0, "timeEvo_x0_1.5_sig_1.8_", T, N);
+
 }

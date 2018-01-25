@@ -9,6 +9,8 @@
 #include <math.h>
 #include <abort.h>
 #include <iomanip>
+#include "basisboundary.h"
+#include <sstream>
 
 class Wigner{
 public:
@@ -26,6 +28,7 @@ public:
 
     std::vector<double> val(int n);
     void updateGrid();
+    void newWaveFunc(WaveFunction *_wav);
 
     void writeFile(std::string filename);
 
@@ -42,6 +45,9 @@ public:
 
     static void oscCoherent();
 
+    static void timeEvo(std::complex<double> (*wavFunc)(double), double eps, std::string fileNameStart, double T, int N);
+
+    static void timeEvoTest(double x0, double sig);
 };
 
 #endif // WIGNER

@@ -12,13 +12,15 @@ SOURCES += main.cpp \
     waveFunction.cpp \
     wigner.cpp \
     basisSet.cpp \
-    orthopol.cpp
+    orthopol.cpp \
+    basisboundary.cpp
 
 HEADERS += \
     waveFunction.h \
     wigner.h \
     basisSet.h \
-    orthopol.h
+    orthopol.h \
+    basisboundary.h
 
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../CompPhys2017/LIBRARIES/alglib/release/ -lalglib
