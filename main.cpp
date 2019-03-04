@@ -12,7 +12,7 @@ std::complex<double> f1(double x){
 
 int main(int argc, char *argv[])
 {
-//    Wigner::test();
+    Wigner::test();
 //    Wigner::oscEigenStates();
 //    Wigner::oscCoherent();
 //    Wigner::checkProb();
@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 //        sig = atof(argv[2]);
 //    }
 
-    Wigner::timeEvoTest(0, 0);
+//    Wigner::timeEvoTest(0, 0);
 
     return 0;
 }

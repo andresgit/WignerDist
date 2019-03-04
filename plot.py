@@ -79,7 +79,7 @@ def plot(filename, show=True, foldername="./"):
     plt.close(fig)
 
 filenames = [
-##    "test1.txt",
+    "test1.txt",
 ##    "oscEigen0.txt",
 ##    "oscEigen1.txt",
 ##    "oscEigen2.txt",
@@ -94,9 +94,10 @@ filenames = [
 ##    *sorted(filter(lambda x: x.startswith("timeEvo_eps_0.01_"),listdir("./build"))),
 ##    *sorted(filter(lambda x: x.startswith("timeEvo_eps_0.1_"),listdir("./build"))),
 ##    *sorted(filter(lambda x: x.startswith("timeEvo_eps_1_"),listdir("./build"))),
-    *sorted(filter(lambda x: x.startswith("timeEvo_x0_1_sig_1_"),listdir("./build"))),
-    *sorted(filter(lambda x: x.startswith("timeEvo_x0_1.5_sig_1.5_"),listdir("./build"))),
-    *sorted(filter(lambda x: x.startswith("timeEvo_x0_1.5_sig_1.8_"),listdir("./build"))),
+##    *sorted(filter(lambda x: x.startswith("timeEvo_x0_1_sig_1_"),listdir("./build"))),
+##    *sorted(filter(lambda x: x.startswith("timeEvo_x0_1.5_sig_1.5_"),listdir("./build"))),
+##    *sorted(filter(lambda x: x.startswith("timeEvo_x0_1.5_sig_1.8_"),listdir("./build"))),
+##    *sorted(filter(lambda x: x.startswith("timeEvo_test_"),listdir("./build"))),
     ]
 
 ##plot1D("pongrid.txt")

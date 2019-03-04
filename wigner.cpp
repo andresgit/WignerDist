@@ -115,7 +115,7 @@ void Wigner::test(){
     double L = 5;
     LegendreScaled basis(60,-L,L);
     WaveFunction wav(&basis);
-    wav.set([](double x){ return std::complex<double>(exp(-x*x/2)/pow(M_PI,1.0/4), 0);});
+    wav.set([](double x){ double sig = 2; return std::complex<double>(exp(-x*x/(2*sig*sig))/pow(M_PI*sig*sig,1.0/4), 0);});
     int n = 101;
     Wigner wig(&wav, n);
 
@@ -248,12 +248,12 @@ void Wigner::checkProb(){
 //calculate the time evolution of the wave function wavFunc and plot the Wigner distributions along the way, eps is the x^4 coefficient, T is the final time, N is number of plots
 //for the time evolution we find the eigenvectors and eigenvalues of the Hamiltonian operator on the given basis set and then just exponentiate them as usual v(t)=exp(
 void Wigner::timeEvo(std::complex<double> (*wavFunc)(double), double perturb, string fileNameStart, double T, int N){
-    double L = 7;
-    BasisBoundary basis(70,-L,L);
+    double L = 12;
+    BasisBoundary basis(100,-L,L);
     WaveFunction wav(&basis);
     std::complex<double> alpha(1,1);
     wav.set(wavFunc);
-    Wigner wig(&wav, 80);
+    Wigner wig(&wav, 130);
     wig.writeFile(fileNameStart+".txt");
 
     //the Hamiltonian matrix in the current basis, we get it from the basis class
@@ -301,11 +301,11 @@ void Wigner::timeEvo(std::complex<double> (*wavFunc)(double), double perturb, st
 void Wigner::timeEvoTest(double x0, double sig){
     double T = M_PI/0.5;
     double perturb;
-    int N = 20;
+    int N = 100;
     complex<double> (*wavFunc)(double) = [](double x) -> complex<double> { complex<double> alpha = complex<double>(1,1); return exp(-pow(x-sqrt(2)*alpha,2)/2.0-pow(alpha.imag(),2))/pow(M_PI,1.0/4);};
     ostringstream out;
 
-    goto next;
+//    goto next;
     //data with various x^4 perturbation coefficients
     perturb = 0.;
     out.str(string()); out << "timeEvo_eps_" << perturb << "_";
@@ -319,11 +319,12 @@ void Wigner::timeEvoTest(double x0, double sig){
     out.str(string()); out << "timeEvo_eps_" << perturb << "_";
     timeEvo(wavFunc, perturb, out.str(), T, N);
 
+    N=100;
     perturb = 1.;
     out.str(string()); out << "timeEvo_eps_" << perturb << "_";
     timeEvo(wavFunc, perturb, out.str(), T, N);
 next:
-    //data for gaussian initial state to observe squeezing
+//    data for gaussian initial state to observe squeezing
 //    x1 = x0;
 //    sig1 = sig;
     wavFunc = [](double x) -> complex<double> { double x0 = 1; double sig = 1; return exp(-pow((x-x0)/(sig*sig),2))/pow(M_PI,1.0/4);};
@@ -332,7 +333,12 @@ next:
     wavFunc = [](double x) -> complex<double> { double x0 = 1.5; double sig = 1.5; return exp(-pow((x-x0)/(sig*sig),2))/pow(M_PI,1.0/4);};
     timeEvo(wavFunc, 0, "timeEvo_x0_1.5_sig_1.5_", T, N);
 
+    N = 100;
     wavFunc = [](double x) -> complex<double> { double x0 = 1.5; double sig = 1.8; return exp(-pow((x-x0)/(sig*sig),2))/pow(M_PI,1.0/4);};
     timeEvo(wavFunc, 0, "timeEvo_x0_1.5_sig_1.8_", T, N);
+
+    N = 100;
+    wavFunc = [](double x) -> complex<double> { return (2*x*x-1)*exp(-x*x/2 + complex<double>(0,1)*x)/pow(M_PI,1.0/4);};
+    timeEvo(wavFunc, 0, "timeEvo_test_", T, N);
 
 }
